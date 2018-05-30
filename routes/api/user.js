@@ -6,6 +6,7 @@ const passport = require('passport');
 
 const User = require('../../models/User');
 const keys = require('../../config/keys');
+const Validator = require('../../validator');
 
 // @route   GET /api/users/
 // @desc    Test users route
@@ -18,10 +19,16 @@ router.get('/', (req, res) => {
 // @desc    Register new user
 // @access  Public
 router.post('/register', (req, res) => {
+  // Validate first
+  const {errors, isValid} = Validator.validateRegister(req.body);
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   User.findOne({ email: req.body.email })
     .then(user => {
       if (user) {
-        return res.status(400).json({ message: 'Email already exists!' });
+        return res.status(400).json({ email: 'Email already exists!' });
       } else {
         const avatar = gravatar.url(req.body.email, {
           s: '200',
@@ -55,18 +62,20 @@ router.post('/register', (req, res) => {
 // @desc    Login / Return jwt token
 // @access  Public
 router.post('/login', (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
-  if (!email || !password) {
-    return res.status(400).json({message: 'Email and password needed!'});
+  // Validate first
+  const {errors, isValid} = Validator.validateLogin(req.body);
+  if (!isValid) {
+    return res.status(400).json(errors);
   }
 
+  let email = req.body.email;
+  let password = req.body.password;
   User
     .findOne({email})
     .then(user => {
       if (!user) {
         // User doesn't exist
-        return res.status(400).json({message: 'Wrong email or password!'});
+        return res.status(400).json({email: 'Wrong email or password!', password: 'Wrong email or password!'});
       } else {
         bcrypt
           .compare(password, user.password)
@@ -87,7 +96,7 @@ router.post('/login', (req, res) => {
                 }
               );
             } else {
-              return res.status(400).json({message: 'Wrong email or password!'});
+              return res.status(400).json({email: 'Wrong email or password!', password: 'Wrong email or password!'});
             }
           });
       }
@@ -102,7 +111,7 @@ router.get(
   passport.authenticate('jwt', {session: false}),
   (req, res) => {
     res.json({
-      message: 'Hello from Jam',
+      message: `Hello ${req.user.name}`,
       id: req.user.id,
       name: req.user.name,
       email: req.user.email
