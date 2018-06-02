@@ -3,6 +3,8 @@ const Utils = require('../utils');
 
 const validateLogin = data => {
   let errors = {};
+
+  // Map all to string so that Validator could use
   let email = Utils.isEmpty(data.email) ? '' : data.email;
   let password = Utils.isEmpty(data.password) ? '' : data.password;
 

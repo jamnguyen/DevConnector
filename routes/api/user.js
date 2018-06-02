@@ -11,7 +11,7 @@ const Validator = require('../../validator');
 // @route   GET /api/users/
 // @desc    Test users route
 // @access  Public
-router.get('/', (req, res) => {
+router.get('/test', (req, res) => {
   res.json({message: 'User api works!'});
 });
 
