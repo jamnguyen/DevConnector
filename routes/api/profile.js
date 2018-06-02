@@ -106,4 +106,132 @@ router.post(
   }
 );
 
+// @route   GET /api/profile/handle/:handle
+// @desc    Get user's profile by handle
+// @access  Public
+router.get('/handle/:handle', (req, res) => {
+  let errors = {};
+  Profile.findOne({ handle: req.params.handle })
+    .populate('user', ['name', 'avatar'])
+    .then(profile => {
+      if (!profile) {
+        errors.noprofile = 'There is no profile for this handle.';
+        return res.status(404).json(errors);
+      }
+      return res.json(profile);
+    }).catch(err => {
+      return res.status(400).json(err);
+    })
+});
+
+// @route   GET /api/profile/user/:user_id
+// @desc    Get user's profile by user id
+// @access  Public
+router.get('/user/:user_id', (req, res) => {
+  let errors = {};
+  Profile.findOne({ user: req.params.user_id })
+    .populate('user', ['name', 'avatar'])
+    .then(profile => {
+      if (!profile) {
+        errors.noprofile = 'There is no profile for this user id.';
+        return res.status(404).json(errors);
+      }
+      return res.json(profile);
+    }).catch(err => {
+      return res.status(400).json(err);
+    })
+});
+
+// @route   GET /api/profile/all
+// @desc    Return all user profile
+// @access  Public
+router.get('/all', (req, res) => {
+  let errors = {};
+  Profile.find()
+    .populate('user', ['name', 'avatar'])
+    .then(profiles => {
+      if (!profiles) {
+        errors.noprofile = 'There is no profile of all users.';
+        return res.status(404).json(errors);
+      }
+      return res.json(profiles);
+    }).catch(err => {
+      return res.status(400).json(err);
+    })
+});
+
+// @route   POST /api/profile/experience
+// @desc    Add experience
+// @access  Private
+router.post(
+  '/experience',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    // Validate first
+    let {errors, isValid} = Validator.validateExperience(req.body);
+    if (!isValid) {
+      return res.status(400).json(errors);
+    }
+
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        if (!profile) {
+          errors.noprofile = 'There is no profile of this user.';
+          return res.status(404).json(errors);
+        }
+
+        let newExp = {
+          title: req.body.title,
+          company: req.body.company,
+          location: req.body.location,
+          from: req.body.from,
+          to: req.body.to,
+          current: req.body.current,
+          description: req.body.description,
+        };
+
+        // Add to experience array
+        profile.experience.unshift(newExp);
+        profile.save().then(profile => res.json(profile));
+      })
+  }
+);
+
+// @route   POST /api/profile/education
+// @desc    Add education
+// @access  Private
+router.post(
+  '/education',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    // Validate first
+    let {errors, isValid} = Validator.validateEducation(req.body);
+    if (!isValid) {
+      return res.status(400).json(errors);
+    }
+
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        if (!profile) {
+          errors.noprofile = 'There is no profile of this user.';
+          return res.status(404).json(errors);
+        }
+
+        let newEdu = {
+          school: req.body.school,
+          degree: req.body.degree,
+          fieldofstudy: req.body.fieldofstudy,
+          from: req.body.from,
+          to: req.body.to,
+          current: req.body.current,
+          description: req.body.description,
+        };
+
+        // Add to education array
+        profile.education.unshift(newEdu);
+        profile.save().then(profile => res.json(profile));
+      })
+  }
+);
+
 module.exports = router;
