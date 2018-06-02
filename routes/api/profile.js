@@ -234,4 +234,83 @@ router.post(
   }
 );
 
+// @route   DELETE /api/profile/experience/:exp_id
+// @desc    Delete an experience
+// @access  Private
+router.delete(
+  '/experience/:exp_id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        if (!profile) {
+          errors.noprofile = 'There is no profile of this user.';
+          return res.status(404).json(errors);
+        }
+
+        const removeIndex = profile.experience
+          .map(item => item.id)
+          .indexOf(req.params.exp_id);
+
+        if (removeIndex < 0) {
+          return res.status(400).json({message: 'Experience does not exist.'});
+        }
+        profile.experience.splice(removeIndex, 1);
+        profile.save().then(profile => res.json(profile));
+      }).catch(err => res.status(400).json(err));
+  }
+);
+
+// @route   DELETE /api/profile/education/:edu_id
+// @desc    Delete an education
+// @access  Private
+router.delete(
+  '/education/:edu_id',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        if (!profile) {
+          errors.noprofile = 'There is no profile of this user.';
+          return res.status(404).json(errors);
+        }
+
+        const removeIndex = profile.education
+          .map(item => item.id)
+          .indexOf(req.params.edu_id);
+
+        if (removeIndex < 0) {
+          return res.status(400).json({message: 'Education does not exist.'});
+        }
+        profile.education.splice(removeIndex, 1);
+        profile.save().then(profile => res.json(profile));
+      }).catch(err => res.status(400).json(err));
+  }
+);
+
+// @route   DELETE /api/profile
+// @desc    Delete profile and corresponding user
+// @access  Private
+router.delete(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    Profile.findOne({ user: req.user.id })
+      .then(profile => {
+        if (!profile) {
+          errors.noprofile = 'There is no profile of this user.';
+          return res.status(404).json(errors);
+        }
+
+        Profile.findOneAndRemove({ user: req.user.id })
+          .then(() => {
+            User.findOneAndRemove({ _id: req.user.id })
+              .then(() => {
+                return res.json({ success: true});
+              }).catch(err => res.status(400).json(err));
+          }).catch(err => res.status(400).json(err));
+      }).catch(err => res.status(400).json(err));
+  }
+);
+
 module.exports = router;
