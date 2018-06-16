@@ -102,4 +102,58 @@ router.post('/unlike/:post_id', passport.authenticate('jwt', {session: false}), 
     }).catch(err => res.status(404).json({nopostfound: 'No post found.'}));
 });
 
+// @route   POST /api/post/comment/:post_id
+// @desc    Create new comment
+// @access  Private
+router.post('/comment/:post_id', passport.authenticate('jwt', {session: false}), (req, res) => {
+  const {errors, isValid} = Validator.validateComment(req.body);
+
+  if (!isValid) {
+    res.status(400).json(errors);
+  }
+
+  Post.findById(req.params.post_id).then(post => {
+    const newComment = {
+      user: req.user.id,
+      name: req.body.name,
+      avatar: req.body.avatar,
+      text: req.body.text
+    };
+    
+    post.comments.unshift(newComment);
+    post.save().then(post => res.json(post));
+  }).catch(err => res.status(404).json({nopostfound: 'No post found.'}));
+
+});
+
+// @route   DELETE /api/post/comment/:post_id/:comment_id
+// @desc    Delete a comment
+// @access  Private
+router.delete('/comment/:post_id/:comment_id', passport.authenticate('jwt', {session: false}), (req, res) => {
+  Post.findById(req.params.post_id)
+    .then(post => {
+      // Check if comment exists
+      if (post.comments.filter(comment => {
+        return (comment.id.toString() === req.params.comment_id)
+      }).length <= 0) {
+        return res.status(401).json({commentnotfound: 'Comment not found on this post.'});
+      }
+
+      // Check permission to delete comment
+      if (post.comments.filter(comment => {
+        return (comment.id.toString() === req.params.comment_id
+                && (comment.user.toString() === req.user.id || post.user.toString() === req.user.id))
+      }).length <= 0) {
+        return res.status(401).json({notauthorized: 'You do not have permission to delete this comment.'});
+      }
+
+      const removeIndex = post.comments
+                            .map(comment => comment.id.toString())
+                            .indexOf(req.params.id);
+
+      post.comments.splice(removeIndex, 1);
+      post.save().then(post => res.json(post));
+    }).catch(err => res.status(404).json({nopostfound: 'No post found.'}));
+});
+
 module.exports = router;

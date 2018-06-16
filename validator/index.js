@@ -4,5 +4,6 @@ module.exports = {
   validateProfile: require('./profileValidator'),
   validateExperience: require('./experienceValidator'),
   validateEducation: require('./educationValidator'),
-  validatePost: require('./postValidator')
+  validatePost: require('./postValidator'),
+  validateComment: require('./commentValidator'),
 }
