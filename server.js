@@ -6,7 +6,7 @@ const passport = require('passport');
 const app = express();
 
 // Config
-const port = process.env.port || 3000;
+const port = process.env.port || 5000;
 const db = require('./config/keys').mongoURI;
 
 // Connect to MongoDB
