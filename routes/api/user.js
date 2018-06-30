@@ -8,14 +8,14 @@ const User = require('../../models/User');
 const keys = require('../../config/keys');
 const Validator = require('../../validator');
 
-// @route   GET /api/users/
-// @desc    Test users route
+// @route   GET /api/user/
+// @desc    Test user route
 // @access  Public
 router.get('/test', (req, res) => {
   res.json({message: 'User api works!'});
 });
 
-// @route   POST /api/users/register
+// @route   POST /api/user/register
 // @desc    Register new user
 // @access  Public
 router.post('/register', (req, res) => {
@@ -58,7 +58,7 @@ router.post('/register', (req, res) => {
 
 });
 
-// @route   POST /api/users/login
+// @route   POST /api/user/login
 // @desc    Login / Return jwt token
 // @access  Public
 router.post('/login', (req, res) => {
